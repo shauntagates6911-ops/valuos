@@ -1,0 +1,53 @@
+// ValuFS — ZERO THINKING MODE
+// File: src/fs.rs
+
+pub const VALU_FREE_MAX: usize = 3 * 1024 * 1024;   // 3 MB
+pub const VALU_PLUS_MAX: usize = 5400 * 1024;       // 5.4 MB
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Tier {
+    Free,
+    Plus,
+}
+
+#[derive(Debug)]
+pub struct ValuFs {
+    pub used: usize,
+    pub max: usize,
+    pub tier: Tier,
+}
+
+impl ValuFs {
+    pub fn new(tier: Tier) -> Self {
+        let max = match tier {
+            Tier::Free => VALU_FREE_MAX,
+            Tier::Plus => VALU_PLUS_MAX,
+        };
+
+        Self {
+            used: 0,
+            max,
+            tier,
+        }
+    }
+
+    pub fn can_alloc(&self, size: usize) -> bool {
+        self.used + size <= self.max
+    }
+
+    pub fn alloc(&mut self, size: usize) -> bool {
+        if !self.can_alloc(size) {
+            return false;
+        }
+        self.used += size;
+        true
+    }
+
+    pub fn free(&mut self, size: usize) {
+        if size > self.used {
+            self.used = 0;
+        } else {
+            self.used -= size;
+        }
+    }
+}
